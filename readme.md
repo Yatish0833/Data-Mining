@@ -1,0 +1,1 @@
+This directory contains all the the work related to data mining and machine learning including Bayesian probability, supervised and unsupervised learning, Text mining and wordcloud usage etc. R markdown format is used here to publish my work.
