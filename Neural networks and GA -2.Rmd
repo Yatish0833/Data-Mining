@@ -1,5 +1,5 @@
 ---
-title: "Assignment7b"
+title: "Neural Networks and Genetic Algorithms Part2"
 author: "Yatish"
 date: "October 24, 2015"
 output: html_document

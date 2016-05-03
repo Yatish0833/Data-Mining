@@ -1,5 +1,5 @@
 ---
-title: "Assignment10a"
+title: "Bayesian Probability Part1"
 author: "Yatish"
 date: "November 16, 2015"
 output: html_document

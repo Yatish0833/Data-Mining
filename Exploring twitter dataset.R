@@ -1,6 +1,3 @@
-4
-
-
 set.seed(100)
 trails <- 1000
 min <- 1                                  

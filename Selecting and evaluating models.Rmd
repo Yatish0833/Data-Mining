@@ -1,5 +1,5 @@
 ---
-title: "Assignment 2"
+title: "Selecting and Evaulating Models"
 author: "Yatish"
 date: "September 25, 2015"
 output: html_document

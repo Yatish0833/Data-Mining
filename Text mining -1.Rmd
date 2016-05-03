@@ -1,5 +1,5 @@
 ---
-title: "Assignment8a"
+title: "Text Mining Part1"
 author: "Yatish"
 date: "October 27, 2015"
 output: html_document

@@ -1,5 +1,5 @@
 ---
-title: "Assignment 6c"
+title: "Supervised Learning Part3"
 author: "Yatish"
 date: "October 15, 2015"
 output: html_document
