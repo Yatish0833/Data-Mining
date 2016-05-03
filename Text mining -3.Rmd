@@ -1,0 +1,103 @@
+---
+title: "Assignment8c"
+author: "Yatish"
+date: "October 28, 2015"
+output: html_document
+---
+`install.packages("dendextend")`
+```{r}
+library(tm)
+library(splitstackshape)
+library(e1071)
+library(RTextTools)
+library(qdap)
+library(dendextend)
+```
+
+Load the file M08_tweets.csv
+```{r}
+data_url <- 'http://nikbearbrown.com/YouTube/MachineLearning/M08/M08_tweets.csv'
+twitter <- read.csv(url(data_url),stringsAsFactors=F)
+colnames(twitter)<-"X"
+```
+
+Extract and rank a list of the important hashtags 
+```{r}
+extract.hashes = function(vec){
+ 
+hash.pattern = "#[[:alpha:]]+"
+have.hash = grep(x = vec, pattern = hash.pattern)
+ 
+hash.matches = gregexpr(pattern = hash.pattern,
+                        text = vec[have.hash])
+extracted.hash = regmatches(x = vec[have.hash], m = hash.matches)
+ 
+df = data.frame(table(tolower(unlist(extracted.hash))))
+colnames(df) = c("tag","freq")
+df = df[order(df$freq,decreasing = TRUE),]
+return(df)
+}
+ 
+dat = head(extract.hashes(twitter$X),50)
+dat2 = transform(dat,tag = reorder(tag,freq))
+dat2
+```
+
+Cluster the tweets using these hashtags and give the the clusters names based on their dominant hashtags
+```{r}
+dist(dat2[-1])
+d <- dist((dat2[-1]), method="euclidian") 
+fit <- hclust(d, method="ward.D")
+
+plot(fit,hang=-1,labels=dat2$tag)
+groups <- cutree(fit, k=3)   # "k=" defines the number of clusters you are using  
+fit1<-as.dendrogram(fit)
+fit1
+rect.dendrogram(fit1, k=3,  border="red", text=(dat2$tag))
+```
+
+Classify the tweets in ML.Tweets.New.csv using the cluster lables generated from ML.Tweets.csv
+```{r}
+data_url <- 'http://nikbearbrown.com/YouTube/MachineLearning/M08/ML.Tweets.New.csv'
+twitterNew <- read.csv(url(data_url),stringsAsFactors=F)
+colnames(twitterNew)<-"X"
+
+extract.hashes = function(vec){
+ 
+hash.pattern = "#[[:alpha:]]+"
+have.hash = grep(x = vec, pattern = hash.pattern)
+ 
+hash.matches = gregexpr(pattern = hash.pattern,
+                        text = vec[have.hash])
+extracted.hash = regmatches(x = vec[have.hash], m = hash.matches)
+ 
+df = data.frame(table(tolower(unlist(extracted.hash))))
+colnames(df) = c("tag","freq")
+df = df[order(df$freq,decreasing = TRUE),]
+return(df)
+}
+
+
+datNew = extract.hashes(twitterNew$X)
+head(datNew,50)
+```
+Use the qdap polarity function to score the polarity of the tweets in ML.Tweets.csv
+
+```{r}
+twitterData<-twitter$X[1:500]
+ps <- polarity(twitterData)
+ps
+head(ps$all)
+
+```
+
+Yes, creating a custom polarity.frame - A dataframe or environment containing a dataframe of positive/negative words and weights - based on the tags and words in these tweets improve the polarity score.
+```{r}
+
+afinn_list <- read.delim(file='AFINN-111.txt', header=FALSE, stringsAsFactors=FALSE)
+names(afinn_list) <- c('word', 'score')
+afinn_list$word <- tolower(afinn_list$word)
+
+
+ps <- polarity(twitterData,polarity.frame=afinn_list)
+ps

@@ -1,0 +1,41 @@
+---
+title: "Assignment9a"
+author: "Yatish"
+date: "November 3, 2015"
+output: html_document
+---
+
+### Question 1:
+One key problem of ensemble methods is to obtain diverse ensembles; what characterizes a “diverse ensemble”?
+
+### Answer 1:
+Diverse ensemble is characterized by:
+
+1. Diversity of opinion - Each person should have private information even if it’s just an eccentric interpretation of the known facts.
+2. Independence - People’s opinions aren’t determined by the opinions of those around them.
+3. Decentralization - People are able to specialize and draw on local knowledge.
+4. Aggregation Some mechanism exists for turning private judgments into a collective decision.
+
+the major point behind all these characterstics remains the same that is the members of ensemble make different kind of errors.
+
+### Question 2:
+What is the key idea of boosting? How does the boosting differ from bagging? Does the boosting approach encourage the creating of diverse ensemble?
+
+### Answer 2:
+Boosting involves incrementally building an ensemble by training each new model instance to emphasize the training instances that previous models mis-classified. In these sense it “learns.” Basic difference between boosting and bagging is that bagging involves resampling the data to eventually remove the less important data out whereas boosting indulges in reweighing the data at the end of boosting round to make certain learners more important than others. Yes, the boosting approach encourage the creating of diverse ensemble.
+
+### Question 3:
+Some ensemble algorithms restart if the accuracy of classifiers drops below 50%. Why?
+
+### Answer 3:
+if the ensemble base classifiers have a below 50% accuracy then the ensemble classifiers perform worse than the base classifiers themselves and the drop will be higher if the base classifiers make different kind of errors rather than ensemble classifiers so corrective measure are taken to assure this doesn't happen and thus algorithms like ADA Boost restart if the accuracy of classifiers drops below 50%.
+
+
+### Question 4:
+Given a large number of n indepenent voters (say millions), and a probability p that they make the “correct” vote, at what probability would you trust the decision of n indepenent voters. When wouldn’t you trust n voters decisions even at large n,
+
+### Answer 4:
+
+If p is greater than 1/2 (each voter is more likely to vote correctly), then adding more voters increases the probability that the majority decision is correct. In the limit, the probability that the majority votes correctly approaches 1 as the number of voters increases.
+
+I wouldn't trust n voters decisions even at large n if p is less than 1/2 as it is more likely that each voter is voting incorrectly.

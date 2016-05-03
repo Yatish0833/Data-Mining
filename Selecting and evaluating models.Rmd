@@ -1,0 +1,160 @@
+---
+title: "Assignment 2"
+author: "Yatish"
+date: "September 25, 2015"
+output: html_document
+---
+
+Loading the twitter file and required R packages:
+
+```{r}
+require(ggplot2)
+require(reshape2)
+data_url <- 'http://nikbearbrown.com/YouTube/MachineLearning/M01/M01_quasi_twitter.csv'
+twitter <- read.csv(url(data_url))
+```
+
+## Linear models:
+1st significant linear model:
+
+```{r}
+qplot(experience,age,data=twitter,color=gender)+ geom_smooth(method=lm)+ ylab("Age") + xlab("Experience")
+```
+
+Relationship seems to significant which can be seen by the p value being less than 0.05.
+
+```{r}
+lm1 <- lm(experience~age,data=twitter)
+summary(lm1)
+```
+
+Model equation:
+
+$$ Person_{experience} = 10.25 + 0.018 Person_{age} + \varepsilon $$ 
+
+So if person's age is 45 then person's experience will be 10.25 + 0.81 + Sd.
+
+```{r}
+sd(twitter$age)
+```
+So experience = 10.25+0.81+12.76 =23.82
+
+Relationship between two variable seems linear with some multicollinearity hence the model assumptions seems to hold here.
+```{r}
+cor(twitter$experience,twitter$age)
+```
+
+Other assumption of homoscedasticity can be seen using anova ftest and plotting residuals vs fitted. Homoscedasticity assumptions seems to hold in our case.
+
+```{r}
+anova(lm1)
+plot(lm1)
+```
+
+As ftest p value is less than 0.05 and data seems to be uncorrelated on residuals vs fitted graph, homoscedastic assumption seems to hold true.
+
+Yes, the model makes sense as there should be linear relationship between age and experience.
+
+## Linear models 2:
+2nd significant linear model
+
+```{r}
+qplot(favourites_count  ,statuses_count,data=twitter,color=gender)+ geom_smooth(method=lm,se=FALSE)+ ylab("Statuses count") + xlab("favourites_count") +xlim(c(0,30000)) +ylim(c(0,40000))
+```
+
+Relationship seems to significant which can be seen by the p value being less than 0.05.
+
+```{r}
+lm2 <- lm(favourites_count~statuses_count,data=twitter)
+summary(lm2)
+```
+
+Relationship between two variable seems linear with some multicollinearity hence the model assumptions seems to hold here.
+```{r}
+cor(twitter$favourites_count,twitter$statuses_count)
+```
+
+Other assumption of homoscedasticity can be seen using anova ftest and plotting residuals vs fitted. Homoscedasticity assumptions seems to hold in our case.
+```{r}
+anova(lm2)
+plot(lm2)
+```
+As ftest p value is less than 0.05 and data seems to be uncorrelated on residuals vs fitted graph, homoscedastic assumption seems to hold true.
+
+
+Yes, the model seems to make sense as more favourites count means the person is more active on twitter and hence statuses count can have a linear relationship with favourites count.
+
+## Multivariate relationship between wage and height, race, age, education and experience
+
+```{r}
+multivariate<-lm(wage~height+race+age+education+experience,data=twitter)
+summary(multivariate)
+anova(multivariate)
+```
+
+The most significant variable seems to be height in this case as the p value is less than 0.05
+
+Multicollinearity:
+```{r}
+cor(twitter$wage,twitter$height)
+cor(twitter$wage,as.numeric(twitter$race))
+cor(twitter$wage,twitter$age)
+cor(twitter$wage,twitter$education)
+cor(twitter$wage,twitter$experience)
+```
+There seems to be very little or no multicollinearity between wage and height, race, age, education and experience.
+
+relationship between predictor variables with other predictor variables:
+```{r}
+g_interaction<-lm(wage~(height+race+age+education+experience)^5,data=twitter)
+anova(g_interaction)
+```
+
+As we can see again from the above anova there seems to be a relationship between response variable wage and predictor variable height. Apart from that there is only one trivial relationship between two predictor variables i.e. height and experience. Rest all the predictor variables are independent of each other.
+I don't think this relationship between height and experience is meaningful.
+
+Most significant predictor variable seems to be height and least significant seems to be education so we can run multivariate relationship again without education.
+```{r}
+
+multivariate<-lm(wage~height+race+age+experience,data=twitter)
+summary(multivariate)
+anova(multivariate)
+```
+
+This model doesn't make much sense to me. I was expecting a relationship between wage and either experience or education but there was none and instead there was a relationship between wage and height which seems to be happening by chance.
+
+##Logistic Linear Model
+
+Height predicting gender!
+```{r}
+qplot(gender,height,data=twitter)+geom_boxplot()
+```
+With this box plot we can see height of female are centred around 160 and males around 175. Further analysis can be done by plotting the density graph which will tell us the density of both the population at corresponding heights.
+```{r}
+set.seed(333)
+require(reshape2)
+
+
+norm_plot <- twitter[c("gender","height")]
+rnd<- melt(data=norm_plot)
+head(rnd)
+
+qplot(x=value, data=rnd, geom="density", group=gender, color=gender) + labs(title="Galton father and mother heights", y="Density", x="Height")+xlim(c(140,200))
+```
+
+This density graph makes it clear that the female heights are densed around 162 and males are densed around 175.
+
+Exact relation can be seen using lm with which we can make a model equation:
+```{r}
+m_gender_logistic<-lm(as.numeric(gender) ~ height, data=twitter)
+m_gender_logistic
+summary(m_gender_logistic)
+anova(m_gender_logistic)
+```
+
+Thus with the p values of anova test being less than 0.05 we can conclude the relationship between gender and height.
+
+```{r}
+qplot(height,as.numeric(gender),data=twitter) + stat_smooth(method = "lm", formula = y ~ x, se=FALSE)+xlim(c(140,220))
+```
+Thus the heights can be demarcated withing the gender with males having heights greater than females and hence we can say the relationship is significant and thus the model makes sense.

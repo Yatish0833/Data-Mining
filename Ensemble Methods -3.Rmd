@@ -1,0 +1,41 @@
+---
+title: "Assignment9b"
+author: "Yatish"
+date: "November 3, 2015"
+output: html_document
+---
+
+```{r}
+iris<- read.table("iris.data",sep=",")
+colnames(iris)<-c("SepalLength","SepalWidth","PetalLength","petalWidth","Species")
+
+```
+
+```{r}
+library(ada)
+library(rpart)
+library(adabag) 
+iris.len <- sample(1:nrow(iris), 3*nrow(iris)/4)
+head(iris.len)
+
+train <- iris[iris.len,]
+test <- iris[-iris.len,]
+head(train)
+head(test)
+
+
+iris_boosting <-   boosting(Species~.,data=train, mfinal=20,
+                             control=rpart.control(maxdepth=5))
+
+
+iris_predict <- predict.boosting(iris_boosting, newdata=test)
+iris_predict$confusion 
+
+accuracy <- 1- iris_predict$error
+accuracy
+```
+Data is classified with 95% accuracy which is a considerable increase in accuracy.
+
+
+
+

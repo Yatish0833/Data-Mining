@@ -1,0 +1,58 @@
+---
+title: "Assignmnent11"
+author: "Yatish"
+date: "November 18, 2015"
+output: html_document
+---
+
+
+Load the dataset: Dataset of number of births per month in NewYork city from Jan 1946 to Dec 1959.
+
+```{r}
+library(forecast)
+
+births <- scan("http://robjhyndman.com/tsdldata/data/nybirths.dat")
+births_timeseries <- ts(births, frequency=12, start=c(1946,1))
+births_timeseries
+plot(births_timeseries, xlab='Number of births' ,ylab='Years', main='Number of births per month in New York city')
+```
+
+Fitting time series on ARIMA model
+```{r}
+d <- 0 : 2
+p <- 0 : 6
+q <- 0 : 6
+birth_models <- expand.grid(d = d, p = p, q = q)
+
+
+getTSModelAIC <- function(ts_data, p, d, q) {
+                                            ts_model <- arima(ts_data, order = c(p, d, q),method='ML')
+                                              return(ts_model$aic)
+                                              }
+
+
+getTSModelAICSafe <- function(ts_data, p, d, q) {  
+                                                 result = tryCatch({
+                                                 getTSModelAIC(ts_data, p, d, q)
+                                                  }, error = function(e) {
+                                                 Inf
+                                                 })
+                                                 }
+ 
+ # PICK THE BEST MODEL THAT HAS THE SMALLEST AIC 
+birth_models$aic <- mapply(function(x, y, z) 
+                          getTSModelAIC(births_timeseries, x, y, z), birth_models$p, 
+                              birth_models$d, birth_models$q)
+
+subset(birth_models,aic == min(aic))
+
+```
+
+Pick the best model with least AIC i.e. d=1, p=6, q=6
+```{r}
+birth_model <- arima(births_timeseries, order = c(6, 1, 6),method='ML')
+summary(birth_model)
+  
+plot(forecast(birth_model, 10))
+```
+Forecasting using ARIMA model. Forecasting seems to be following the similar trend.

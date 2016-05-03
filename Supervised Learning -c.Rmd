@@ -1,0 +1,59 @@
+---
+title: "Assignment 6c"
+author: "Yatish"
+date: "October 15, 2015"
+output: html_document
+---
+
+Reading Iris data
+```{r}
+require(ggplot2)
+require(e1071)
+require(kernlab)
+iris<- read.table("iris.data",sep=",")
+colnames(iris)<-c("SepalLength","SepalWidth","PetalLength","petalWidth","Species")
+```
+
+## Answer 1
+Classifying the data using SVM
+```{r}
+svm.fit<- svm(Species~.,data=iris, kernal="linear",cost=10,scale=FALSE)
+plot(svm.fit,iris,SepalLength~PetalLength)
+```
+
+Classifier was able to classify iris setosa with an ease but not the other two species. Model needs improvement.
+
+## Answer 2
+Trying different kernels:
+```{r}
+svmfit1<-svm(Species~.,data=iris,kernal="radial",gamma=1,cost=100000)
+plot(svmfit1,iris,SepalLength~PetalLength)
+
+
+svm.fit<- svm(Species~.,data=iris, kernal="sigmoid",gamma=1,scale=FALSE)
+plot(svm.fit,iris,SepalLength~PetalLength)
+
+```
+
+trying different kernels wouldn't affect the performance much until we tune out the best model.
+
+## Answer 3
+To improve the performance we can use tune function to determine the best cost and gamma range and then choose bestmodel to classify.
+
+```{r}
+tune.out<- tune(svm,Species~.,data=iris,kernal="linear",ranges=list(cost=c(0.001,0.01,0.1,1,5,10,100)))
+bestmodel=tune.out$best.model
+summary(bestmodel)
+```
+
+```{r}
+svm.fit<- svm(Species~.,data=iris, kernal="linear",cost=1,scale=FALSE)
+plot(svm.fit,iris,SepalLength~PetalLength)
+```
+
+```{r}
+svmfit1<-svm(Species~.,data=iris,kernal="radial",gamma=0.25,scale=FALSE)
+plot(svmfit1,iris,SepalLength~PetalLength)
+```
+
+By tuning out the best model we can see the improvement in classification

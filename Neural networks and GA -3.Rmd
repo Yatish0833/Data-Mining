@@ -1,0 +1,63 @@
+---
+title: "Assignment7c"
+author: "Yatish"
+date: "October 24, 2015"
+output: html_document
+---
+
+Loading the data
+```{r}
+wines<-read.table("wine.data",sep=",")
+colnames(wines)<- c("Class","Alcohol","Malic acid", "Ash","Alcalinity of ash","Magnesium","Total phenols","Flavanoids","Nonflavanois phenols","Proanthocyanins","Color intensity",
+                   "Hue","OD280/OD315 of diluted wines","Proline")
+
+wines<-wines[,-1]
+head(wines)
+```
+
+### Answer 1
+
+Clustering with 5 by 5 Hexagonal grid
+```{r}
+training <- sample(nrow(wines), 120)
+Xtraining <- scale(wines[training, ])
+# 5, 5, "hexagonal"
+fit.som <- som(Xtraining, somgrid(5, 5, "hexagonal"))
+plot(fit.som,"changes")
+```
+
+Clustering with 3 by 3 rectangular grid
+```{r}
+fit.som <- som(Xtraining, somgrid(3, 3, "rectangular"))
+plot(fit.som,"changes")
+```
+
+Just by looking at the two plots of of different x and y dimension I can say that the second plot with 3 by 3 rectangular grid needs more iterations to reach plateau whereas 5 by 5 hexagonal plot reached a minimal plateau and hence clustering would be better in that case.
+Moreover the same can also be inferred by the fact that being in the hexagonal grid can offer 6 neighbours that helps achieving the plateau faster.
+
+### Answer 2
+
+As we determine the nodes within the neighbourhood of the Best Matching Units (BMU) the size of neighbourhood matters a lot. More the number of neighbours higher the weights to adjust the nodes in the BMU neighbourhood towards the chosen datapoint. The magnitude of the adjustment is proportional to the proximity of the node to the BMU. Thus the choice of neighbourhood effects clustering. neighbourhood circular is more effective when coupled with hexagonal grid as it will generate more number of neighbours as compared to square coupled with rectangular grid.
+
+### Answer 3
+```{r}
+training <- sample(nrow(wines), 120)
+Xtraining <- scale(wines[training, ])
+# 5, 5, "hexagonal"
+fit.som <- som(Xtraining, somgrid(5, 5, "hexagonal"),alpha = c(0.10, 0.01))
+plot(fit.som,"changes")
+plot(fit.som,"counts")
+plot(fit.som,"dist.neighbours")
+```
+Learning rate decreases with each iteration. Keeping a high learning rate in our case  gives a better count plot with uniform distribution and better neighbour plot.
+
+### Answer 4
+```{r}
+training <- sample(nrow(wines), 120)
+fit.som <- som(training, somgrid(5, 5, "hexagonal"),alpha = c(0.10, 0.01))
+plot(fit.som,"changes")
+plot(fit.som,"counts")
+plot(fit.som,"dist.neighbours")
+```
+Scaled data gives better neighbour distance and count plots as compared to unscaled data. 
+

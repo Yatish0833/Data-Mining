@@ -1,0 +1,123 @@
+---
+title: "Assignment7b"
+author: "Yatish"
+date: "October 24, 2015"
+output: html_document
+---
+
+## genetic algorithm to search for a solution to the famous Travelling Salesman Problem in R
+
+```{r}
+library(GA)
+D <- as.matrix(eurodist)
+
+
+tourLength <- function(tour, distMatrix) {
+  tour <- c(tour, tour[1])
+  route <- embed(tour, 2)[,2:1]
+  sum(distMatrix[route])
+}
+
+
+tspFitness <- function(tour, ...) 1/tourLength(tour, ...)
+
+GA <- ga(type = "permutation", fitness = tspFitness, distMatrix = D,
+         min = 1, max = attr(eurodist, "Size"), popSize = 50, maxiter = 5000,
+         run = 500, pmutation = 0.2)
+
+summary(GA)
+
+
+
+mds <- cmdscale(eurodist)
+x <- mds[, 1]
+y <- -mds[, 2]
+plot(x, y, type = "n", asp = 1, xlab = "", ylab = "")
+
+tour <- GA@solution[1, ]
+tour <- c(tour, tour[1])
+n <- length(tour)
+arrows(x[tour[-n]], y[tour[-n]], x[tour[-1]], y[tour[-1]],
+           length = 0.15, angle = 25, col = "steelblue", lwd = 2)
+text(x, y, labels(eurodist), cex=0.8)
+
+```
+
+Genetic Algorithm gives almost the same result as simulated annealing in terms of graph. The path is obviously not the same. GA path does not depends upon the initial path as was the case of simulated annealing.
+
+### Answer 2
+
+```{r}
+D <- as.matrix(eurodist)
+
+
+tourLength <- function(tour, distMatrix) {
+  tour <- c(tour, tour[1])
+  route <- embed(tour, 2)[,2:1]
+  sum(distMatrix[route])
+}
+
+
+tspFitness <- function(tour, ...) 1/tourLength(tour, ...)
+
+GA <- ga(type = "permutation", fitness = tspFitness, distMatrix = D,
+         min = 1, max = attr(eurodist, "Size"), popSize = 50, maxiter = 5000,
+         run = 500, pmutation = 0.2, pcrossover=0.2)
+
+summary(GA)
+
+
+
+mds <- cmdscale(eurodist)
+x <- mds[, 1]
+y <- -mds[, 2]
+plot(x, y, type = "n", asp = 1, xlab = "", ylab = "")
+
+tour <- GA@solution[1, ]
+tour <- c(tour, tour[1])
+n <- length(tour)
+arrows(x[tour[-n]], y[tour[-n]], x[tour[-1]], y[tour[-1]],
+           length = 0.15, angle = 25, col = "steelblue", lwd = 2)
+text(x, y, labels(eurodist), cex=0.8)
+```
+
+Changing the crossover probability doesn't actually change the outcome in the broad sense i.e. the overall path remains the same but what essentially happens is that lowering the crossover probability will let more individuals continue in the next generation unchanged which essentially means less number of iterations will take place.
+
+### Answer 3
+
+```{r}
+D <- as.matrix(eurodist)
+
+
+tourLength <- function(tour, distMatrix) {
+  tour <- c(tour, tour[1])
+  route <- embed(tour, 2)[,2:1]
+  sum(distMatrix[route])
+}
+
+
+tspFitness <- function(tour, ...) 1/tourLength(tour, ...)
+
+GA <- ga(type = "permutation", fitness = tspFitness, distMatrix = D,
+         min = 1, max = attr(eurodist, "Size"), popSize = 50, maxiter = 5000,
+         run = 500, pmutation = 0.8, pcrossover=0.2)
+
+summary(GA)
+
+
+
+mds <- cmdscale(eurodist)
+x <- mds[, 1]
+y <- -mds[, 2]
+plot(x, y, type = "n", asp = 1, xlab = "", ylab = "")
+
+tour <- GA@solution[1, ]
+
+tour <- c(tour, tour[1])
+n <- length(tour)
+arrows(x[tour[-n]], y[tour[-n]], x[tour[-1]], y[tour[-1]],
+           length = 0.15, angle = 25, col = "steelblue", lwd = 2)
+text(x, y, labels(eurodist), cex=0.8)
+```
+
+The exact opposite is the mutation probability as it determines the number of instances to be mutated in the next generation thus the number of iterations should be more in this case from the previous case. Overall path still remains the same just the start point is changed.

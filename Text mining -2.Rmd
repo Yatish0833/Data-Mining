@@ -1,0 +1,188 @@
+---
+title: "Assignment8b"
+author: "Yatish"
+date: "October 27, 2015"
+output: html_document
+---
+
+```{r}
+library(tm)
+library(splitstackshape)
+library(stringr)
+library(wordcloud)
+library(plyr)
+```
+
+Match any of the following punctuation characters in the ASCII table: !“#$%&’()+,
+```{r}
+ascii<-c("$","!","}","#","^","*","&")
+grep("[\\!|\"|\\#|\\$|\\%|\\&|\\'|\\(|\\)|\\+|\\,]",ascii)
+```
+
+
+Create one regular expression to match all common misspellings of calendar
+```{r}
+commonMisSpellings<-c("calendar","calender","calandar","calander","colander")
+grep("c[a|o]l[e|a]nd[a|e]r",commonMisSpellings)
+```
+
+validate a ZIP code (U.S. postal code), allowing both the five-digit and nine-digit (called ZIP+4) formats
+```{r}
+validateZip<- function(zip){
+  if(length(grep("^\\d{5}([\\-]\\d{4})?$",zip))==0){
+    print("Invalid zip")
+  }else{
+    print("Valid zip")
+  }
+}
+validateZip("02215-2113")
+validateZip("022152113")
+```
+
+
+validate a legit any password for your website
+```{r}
+validatePassword<- function(passwd){
+  if(nchar(passwd)>=8 & nchar(passwd)<=32){
+    if(length(grep("[^\\x00\\x08\\x0B\\x0C\\x0E-\\x1F]*",passwd))==0){
+      print("Invalid password: password can only have printable characters")
+    }else if(length(grep("[A-Z]",passwd))==0){
+      print("Invalid password: Atleast 1 uppercase letter is required")
+    }else if(length(grep("[a-z]",passwd))==0){
+      print("Invalid password: Atleast 1 lowercase letter is required")
+    }else if(length(grep("[[:punct:]]",passwd))==0){
+      print("Invalid password: Atleast 1 special character is required")
+    }else{
+      print("This is a Valid password")
+    }
+  }else{
+    print("Incorrect password: make sure that you password is more than 8 characters and less than 32.")
+  }
+}
+
+validatePassword("zap")
+validatePassword("computer")
+validatePassword("Computer")
+validatePassword("COMPUTER")
+validatePassword("C@mputer")
+```
+
+Load the file M08_tweets.csv
+```{r}
+data_url <- 'http://nikbearbrown.com/YouTube/MachineLearning/M08/M08_tweets.csv'
+twitter <- read.csv(url(data_url),stringsAsFactors=F)
+colnames(twitter)<-"X"
+```
+
+Extract a list of the top 9 users (e.g. @NikBearBrown)
+```{r}
+twi<-cSplit(twitter, "X", " ")
+names<-sapply(1:34, function(i) (text=paste0("X_",i))) 
+setnames(twi,colnames(twi),names)
+
+t<-grep("^\\@",sapply(1:34, function(i) eval(parse(text=paste0("twi$X_",i)))),value=T)
+
+head(sort(table(t),decreasing=T),9)
+```
+
+Extract a list of the top 9 hashtags (e.g. #Bear)
+
+```{r}
+t<-grep("^\\#",sapply(1:34, function(i) eval(parse(text=paste0("twi$X_",i)))),value=T)
+
+head(sort(table(t),decreasing=T),9)
+```
+
+Find the top 5 most positve tweets
+```{r}
+#Load data
+data_url <- 'http://nikbearbrown.com/YouTube/MachineLearning/M08/M08_tweets.csv'
+twitter <- read.csv(url(data_url),stringsAsFactors=F)
+colnames(twitter)<-"X"
+
+
+afinn_list <- read.delim(file='AFINN-111.txt', header=FALSE, stringsAsFactors=FALSE)
+names(afinn_list) <- c('word', 'score')
+afinn_list$word <- tolower(afinn_list$word)
+
+#categorize words as very negative to very positive and add some movie-specific words
+vNegTerms <- afinn_list$word[afinn_list$score==-5 | afinn_list$score==-4]
+negTerms <- c(afinn_list$word[afinn_list$score==-3 | afinn_list$score==-2 | afinn_list$score==-1], "second-rate", "moronic", "third-rate", "flawed", "juvenile", "boring", "distasteful", "ordinary", "disgusting", "senseless", "static", "brutal", "confused", "disappointing", "bloody", "silly", "tired", "predictable", "stupid", "uninteresting", "trite", "uneven", "outdated", "dreadful", "bland")
+posTerms <- c(afinn_list$word[afinn_list$score==3 | afinn_list$score==2 | afinn_list$score==1], "first-rate", "insightful", "clever", "charming", "comical", "charismatic", "enjoyable", "absorbing", "sensitive", "intriguing", "powerful", "pleasant", "surprising", "thought-provoking", "imaginative", "unpretentious")
+vPosTerms <- c(afinn_list$word[afinn_list$score==5 | afinn_list$score==4], "uproarious", "riveting", "fascinating", "dazzling", "legendary")
+
+
+sentimentScore <- function(sentences, vNegTerms, negTerms, posTerms, vPosTerms){
+  final_scores <- matrix('', 0, 5)
+  scores <- laply(sentences, function(sentence, vNegTerms, negTerms, posTerms, vPosTerms){
+    initial_sentence <- sentence
+    #remove unnecessary characters and split up by word 
+    sentence <- gsub('[[:punct:]]', '', sentence)
+    sentence <- gsub('[[:cntrl:]]', '', sentence)
+    sentence <- gsub('\\d+', '', sentence)
+    sentence <- tolower(sentence)
+    wordList <- str_split(sentence, '\\s+')
+    words <- unlist(wordList)
+    #build vector with matches between sentence and each category
+    vPosMatches <- match(words, vPosTerms)
+    posMatches <- match(words, posTerms)
+    vNegMatches <- match(words, vNegTerms)
+    negMatches <- match(words, negTerms)
+    #sum up number of words in each category
+    vPosMatches <- sum(!is.na(vPosMatches))
+    posMatches <- sum(!is.na(posMatches))
+    vNegMatches <- sum(!is.na(vNegMatches))
+    negMatches <- sum(!is.na(negMatches))
+    score <- c(vNegMatches, negMatches, posMatches, vPosMatches)
+    #add row to scores table
+    newrow <- c(initial_sentence, score)
+    final_scores <- rbind(final_scores, newrow)
+    return(final_scores)
+  }, vNegTerms, negTerms, posTerms, vPosTerms)
+  return(scores)
+}
+
+Result <- as.data.frame(sentimentScore(twitter$X, vNegTerms, negTerms, posTerms, vPosTerms))
+colnames(Result)<-c("Sentence","vNegTerms","negTerms","posTerms","vPosTerms")
+
+
+Result$Negative<- as.numeric(as.character(Result$vNegTerms))+as.numeric(as.character(Result$negTerms))
+Result$positive<- as.numeric(as.character(Result$posTerms))+as.numeric(as.character(Result$vPosTerms))
+
+topPosTweets<-Result[order(Result$positive, decreasing=T), ]
+head(topPosTweets$Sentence,5)
+```
+
+Find the top 5 most negative tweets
+```{r}
+topNegTweets<-Result[order(Result$Negative, decreasing=T), ]
+head(topNegTweets$Sentence,5)
+```
+
+Create a world cloud of 100 related tweets
+```{r}
+twitter_text <- paste(twitter$X, collapse=" ")
+twitter_source<-VectorSource(twitter_text)
+corpus <- Corpus(twitter_source)
+
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removePunctuation)
+
+corpus <- tm_map(corpus, stripWhitespace)
+
+corpus <- tm_map(corpus, removeWords, stopwords("english"))
+dtm <- DocumentTermMatrix(corpus)
+dtm2 <- as.matrix(dtm)
+frequency <- colSums(dtm2)
+frequency <- sort(frequency, decreasing=TRUE)
+
+words<-names(frequency)
+wordcloud(words[1:100], frequency[1:100],colors=brewer.pal(8, "Dark2"))
+```
+
+Which tweets could be classified as game development?
+
+```{r}
+gamedev<-(grep("\\#gamedev",twitter$X,value=T))
+head(gamedev)
+```

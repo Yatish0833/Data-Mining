@@ -1,0 +1,64 @@
+---
+title: "Assignment8a"
+author: "Yatish"
+date: "October 27, 2015"
+output: html_document
+---
+
+### Answer1
+Creating term document matrix using r.
+
+```{r}
+library(tm)
+doc1<-"You have brains in your head."
+doc2<-"You have feet in your shoes."
+doc3<-"You can steer yourself in any direction you choose."
+doc4<-"You're on your own, and you know what you know."
+doc5<-"And you are the guy who'll decide where to go."
+
+df <- data.frame(txt = sapply(1:5, function(i) eval(parse(text=paste0("doc",i)))))
+str(df)
+
+corpus <- Corpus(VectorSource(df$txt))
+tdm<-TermDocumentMatrix(corpus,control = list(removePunctuation = TRUE, stopwords=TRUE))
+```
+
+Let's look at the term document matrix:
+```{r}
+inspect(tdm)
+```
+
+### Answer 2
+
+Calculating the td-idf of all the tdm words:
+```{r}
+terms <-DocumentTermMatrix(corpus,control = list(removePunctuation = TRUE, stopwords=TRUE,weighting = function(x) weightTfIdf(x, normalize = FALSE)))
+inspect(terms)
+```
+
+### Answer 3
+regular expression to segment the Dr. Seuss quote in to seperate sentences.
+
+```{r}
+library(stringr)
+sentence<-"You have brains in your head. You have feet in your shoes. You can steer yourself in any direction you choose. You're on your own, and you know what you know. And you are the guy who'll decide where to go."
+list<- str_split(sentence, "\\. ")
+list[1]
+```
+
+
+### Answer 4
+regular expression to tokenize the Dr. Seuss quote.
+
+```{r}
+tokens<-str_replace_all(sentence, "\\.","")
+tokens[1]
+tokens<-str_split(sentence,"\\s+")
+tokens[1]
+```
+
+### Answer 5
+frequency signature for the Dr. Seuss quote
+```{r}
+table(tokens[1])
+```

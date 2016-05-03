@@ -1,0 +1,122 @@
+---
+title: "Assignment 4a"
+author: "Yatish"
+date: "October 1, 2015"
+output: html_document
+---
+
+Download the data from the site and read the downloaded file:
+Collecting iris data.
+```{r}
+library("cluster")
+iris<- read.table("iris.data",sep=",")
+colnames(iris)<-c("SepalLength","SepalWidth","PetalLength","petalWidth","Species")
+iris_data<-iris[-5]
+```
+
+### Answer 1
+Finding the number of clusters k, for k-means:
+```{r}
+sos <- (nrow(iris_data)-1)*sum(apply(iris_data,2,var))
+for (i in 2:10) sos[i] <- sum(kmeans(iris_data, centers=i)$withinss)
+plot(1:10, sos, type="b", xlab="Number of Clusters", ylab="sum of squares")
+require(useful)
+best<-FitKMeans(iris_data,max.clusters=10, seed=111) 
+PlotHartigan(best)
+```
+
+From the above Hartigan's plot we can take 3 clusters.
+
+```{r}
+k<-3
+iris.3.clust<-kmeans(iris_data,k)
+iris.3.clust
+```
+
+PAM clustering.
+```{r}
+
+k<-3
+iris.pam.3.clust<- pam(iris_data,k, keep.diss = TRUE, keep.data = TRUE)
+iris.pam.3.clust
+```
+
+Hierarchical clustering.
+```{r}
+iris.h.clust<- hclust(d=dist(iris_data))
+plot(iris.h.clust)
+rect.hclust(iris.h.clust, k=3, border="red")
+```
+
+### Answer 2:
+Both pam and kmeans approach performed quite similarly on the same data. We need to explore more on hierarchical clustering to compare the results with other two which we will be doing in next few answers and thus we will be able to answer how hierarchical clustering behaves on this data.
+Just by looking at the graph of heirarchical clustering it doesn't seems like it has performed that well as the rectangles seems bit unequal.
+
+### Answer 3:
+By looking at noth the confusion matrix it feels like both the methods have segregated one element perfectly and there are 16 errors in segregations.
+```{r}
+table(iris$Species,iris.3.clust$cluster)
+table(iris$Species,iris.pam.3.clust$cluster)
+```
+
+### Answer 4:
+
+```{r}
+clusplot(iris, iris.3.clust$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+clusplot(iris, iris.pam.3.clust$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+```
+By looking at both the plots we can see that component 1 and component 2 have few overlaps. Thirs component is well segregated and can be easily predicted.
+
+### Answer 5:
+
+```{r}
+plot(iris.pam.3.clust, which.plots = 2)
+```
+From Silhouette plot of PAM we can again see that the longer lines of cluster 1 means greater within cluster similarity i.e. can be easily segregated whereas similar line length of cluster 2 and 3 depicts less within cluster similarity.
+
+### Answer 6:
+
+```{r}
+#install.packages("energy")
+library("energy")
+iris_data.h.clust.si<- hclust(dist(iris_data), method = "single")
+iris_data.h.clust.co<- hclust(dist(iris_data), method = "complete")
+iris_data.h.clust.av<- hclust(dist(iris_data), method = "average")
+iris_data.h.clust.ce<- hclust(dist(iris_data), method = "centroid")
+plot(iris_data.h.clust.si, labels = FALSE)
+plot(iris_data.h.clust.co, labels = FALSE)
+plot(iris_data.h.clust.av, labels = FALSE)
+plot(iris_data.h.clust.ce, labels = FALSE)
+plot(energy.hclust(dist(iris_data)),labels = FALSE)
+```
+
+Single linkage method generates a plot where the data is tightly packed as it considers smallest distance between points.
+As compared to single linkage complete linkage provides a better and evenly placed plot where we considered largest distance between points.
+Average linkage provides a graph which looks like the intermediary of above two graphs as it takes average distance between points.
+centroid linkage seems to find more clusters than the rest as it considers distance between centroids.
+minimum energy linkage gives the best segregations with a statistical distance between probablity distributions.
+
+### Answer 7:
+Agglomerative clustering:
+```{r}
+distance<- dist(iris_data,method = "euclidean") 
+iris_hclust<-hclust(distance, method="single")
+plot(iris_hclust,labels=FALSE)
+```
+
+Divisive clustering:
+```{r}
+library(cluster)
+dc<-diana(iris_data, diss=inherits(iris_data, "dist"), metric="euclidean")
+plot(dc)
+```
+
+Divisive clustering seems to give more clearer picture of segregations with better visualisation.
+
+### Answer 8:
+centroid clustering and squared euclidean distance generates a plot very similar to minimum energy clustering.
+```{r}
+h_c<- hclust(dist(iris_data)^2, "cen")
+plot(h_c,labels=FALSE)
+```
+

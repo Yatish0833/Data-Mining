@@ -1,0 +1,76 @@
+---
+title: "Assignment10a"
+author: "Yatish"
+date: "November 16, 2015"
+output: html_document
+---
+
+#### Ques 1 - A certain disease has an incidence rate of 2%. If the false negative rate is 10% and the false positive rate is 1%, compute the probability that a person who tests positive actually has the disease.
+
+What do we know?  
+$P(disease)=0.02$
+
+$P(positive\mid disease)=.9$ (False negative is 10% so True positive is 90%)
+
+$P(positive\mid no disease)=0.01$ (False positive is 1%)
+
+Bayes’ Theorem
+
+$$
+P(A|B) = \frac{P(A)\, P(B | A)}{P(B)},
+$$
+
+which can be rewritten as  
+
+$$
+P(A|B) = \frac{P(A)\, P(B | A)}{P(A)P(B|A)+P(\bar{A})P(B|\bar{A})},
+$$
+
+which in our example is
+$$
+P(disease|positive) = \frac{P(disease)\, P(positive | disease)}{P(disease)P(positive|disease)+P(no \quad  disease)P(positive|no \quad disease)},
+$$
+
+plugging in the numbers gives
+
+$$
+P(disease|positive)= \frac{(0.9)\, (0.02)}{(0.9)(0.02)+(0.98)(0.01)}, \approx 0.6474
+$$
+
+#### There is a probability of 64.74% that a person who tests positive actually has the disease
+
+
+#### Ques 2 - About 0.01% of data scientists with no known risk behavior are infected with cooties. The false negative rate for the standard cooties test 0.01% and the false positive rate is also 0.01%. If a randomly selected data scientist with no known risk behavior tests positive for cooties, what is the probability that she is actually infected with cooties?
+
+What do we know?  
+$P(disease)=0.0001$
+
+$P(positive\mid disease)=.9999$ (False negative is .01% so True positive is 99.99%)
+
+$P(positive\mid no disease)=0.0001$ (False positive is .01%)
+
+Bayes’ Theorem
+
+$$
+P(A|B) = \frac{P(A)\, P(B | A)}{P(B)},
+$$
+
+which can be rewritten as  
+
+$$
+P(A|B) = \frac{P(A)\, P(B | A)}{P(A)P(B|A)+P(\bar{A})P(B|\bar{A})},
+$$
+
+which in our example is
+$$
+P(disease|positive) = \frac{P(disease)\, P(positive | disease)}{P(disease)P(positive|disease)+P(no \quad  disease)P(positive|no \quad disease)},
+$$
+
+plugging in the numbers gives
+
+$$
+P(disease|positive)= \frac{(0.0001)\, (0.9999)}{(0.0001)(0.9999)+(0.9999)(0.0001)}, = 0.5
+$$
+
+#### A randomly selected data scientist with no known risk behavior tests positive for cooties, has the probability of 50% that she is actually infected with cooties
+

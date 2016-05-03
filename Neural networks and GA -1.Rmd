@@ -1,0 +1,174 @@
+---
+title: "Assignment7a"
+author: "Yatish"
+date: "October 22, 2015"
+output: html_document
+---
+
+## Answer 1:
+Writing a different distance function to see the effect on the final solution:
+
+```{r}
+CityDistMatx <- as.matrix(eurodist)
+CityDistMatx
+cities<-labels(eurodist)
+cities
+
+distance <- function(sq) 
+{  # Target function
+    sq2 <- (embed(sq, 2))
+    
+  return(as.numeric(sum((CityDistMatx[cbind(sq2[,2],sq2[,1])])^2)))
+}
+GenSeq <- function(sq) {  # Generate new candidate sequence
+  idx <- seq(2, NROW(CityDistMatx)-1, by=1)
+  ChangePoints <- sample(idx, size=2, replace=FALSE)
+  tmp <- sq[ChangePoints[1]]
+  sq[ChangePoints[1]] <- sq[ChangePoints[2]]
+  sq[ChangePoints[2]] <- tmp
+  return(as.numeric(sq))
+}
+
+initial.tour <- c(1,2:NROW(CityDistMatx),1)  
+initial.tour
+
+initial.d<-distance(initial.tour)
+initial.d
+
+for(i in 1:length(initial.tour))
+{
+  print(cities[initial.tour[i]])  
+} 
+
+set.seed(333)
+res <- optim(initial.tour, distance, GenSeq, method = "SANN",
+             control = list(maxit = 30000, temp = 2000, trace = TRUE,
+                            REPORT = 500))
+
+res
+final.tour<-res$par
+final.tour
+
+final.d<-16507
+final.d
+
+initial.d
+
+final.d/initial.d
+cities.xy <- cmdscale(eurodist)
+cities.xy
+rx <- range(x <- cities.xy[,1])
+ry <- range(y <- -cities.xy[,2])
+
+s <-head(initial.tour, -1)
+s
+
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="initial solution of traveling salesman problem")
+arrows(x[s], y[s], x[s+1], y[s+1], col="green")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+
+s <-head(final.tour, -1)
+s
+df = data.frame(x[s],y[s])
+df
+
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="optimized simulated annealing traveling salesman problem")
+lines(df$x, df$y, col="red")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+
+
+```
+
+In the distance function I wrote, I am using squared euclidean distance path is slightly changed from the original path shwon with simple euclidean distance. There is no way to tell whether the path shown now is better or the original path but just by looking at the paths the original path with euclidean distances looks better rather than with squared euclidean distance.
+
+## Answer 2
+
+I think scaling is necessary. Without using the Classical Multidimensional Scaling function in the above code we cannot actually determine the best relative path. Using this function we takes in a set of dissimilarities and return a set of points such that the distances between the points are approximately equal to the dissimilarities.
+
+## Answer 3
+
+```{r}
+
+plotPath<-function(sam){
+  CityDistMatx <- as.matrix(eurodist)
+CityDistMatx
+cities<-labels(eurodist)
+cities
+
+distance <- function(sq) 
+{  # Target function
+    sq2 <- (embed(sq, 2))
+    
+  return(as.numeric(sum((CityDistMatx[cbind(sq2[,2],sq2[,1])])^2)))
+}
+GenSeq <- function(sq) {  # Generate new candidate sequence
+  idx <- seq(2, NROW(CityDistMatx)-1, by=1)
+  ChangePoints <- sample(idx, size=2, replace=FALSE)
+  tmp <- sq[ChangePoints[1]]
+  sq[ChangePoints[1]] <- sq[ChangePoints[2]]
+  sq[ChangePoints[2]] <- tmp
+  return(as.numeric(sq))
+}
+
+initial.tour <- c(1,sam,1)  
+initial.tour
+
+initial.d<-distance(initial.tour)
+initial.d
+
+for(i in 1:length(initial.tour))
+{
+  print(cities[initial.tour[i]])  
+} 
+
+set.seed(333)
+res <- optim(initial.tour, distance, GenSeq, method = "SANN",
+             control = list(maxit = 30000, temp = 2000, trace = TRUE,
+                            REPORT = 500))
+
+res
+final.tour<-res$par
+final.tour
+
+final.d<-16507
+final.d
+
+initial.d
+
+final.d/initial.d
+cities.xy <- cmdscale(eurodist)
+cities.xy
+rx <- range(x <- cities.xy[,1])
+ry <- range(y <- -cities.xy[,2])
+
+s <-head(initial.tour, -1)
+s
+
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="initial solution of traveling salesman problem")
+arrows(x[s], y[s], x[s+1], y[s+1], col="green")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+
+s <-head(final.tour, -1)
+s
+df = data.frame(x[s],y[s])
+df
+
+plot(x, y, type="n", asp=1, xlab="", ylab="", main="optimized simulated annealing traveling salesman problem")
+lines(df$x, df$y, col="red")
+text(x, y, labels(cities), cex=0.8)
+text(x, y, labels(eurodist), cex=0.8)
+
+}
+
+sam <- sample(2:NROW(CityDistMatx))
+plotPath(sam)
+sam <- sample(2:NROW(CityDistMatx))
+plotPath(sam)
+sam <- sample(2:NROW(CityDistMatx))
+plotPath(sam)
+```
+
+I made this a function and parsing different values to initial.tour variable. It affects the final solution a lot. As initial values needs to be optimized by optim variable. If the initial value is really bad then the optimization can make it slightly better but not perfect and hence initial values affect the final solution.

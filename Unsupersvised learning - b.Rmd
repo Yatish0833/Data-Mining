@@ -1,0 +1,48 @@
+---
+title: "Assignment 4b"
+author: "Yatish"
+date: "October 5, 2015"
+output: html_document
+---
+
+```{r}
+#install.packages("mclust")
+#install.packages("fitdistrplus")
+#install.packages("logspline")
+library(fitdistrplus)
+library(logspline)
+library("mclust")
+library("cluster")
+iris<- read.table("iris.data",sep=",")
+colnames(iris)<-c("SepalLength","SepalWidth","PetalLength","petalWidth","Species")
+iris_data<-iris[-5]
+```
+
+Lets take a look at how the data is distributed using the Cullen and Frey Graph.
+```{r}
+descdist(iris_data$SepalLength, discrete = FALSE)
+descdist(iris_data$SepalWidth, discrete = FALSE)
+descdist(iris_data$PetalLength, discrete = FALSE)
+descdist(iris_data$petalWidth, discrete = FALSE)
+```
+From the above graph we can see that  Sepal length can be a beta distribution and Sepal width can be either lognormal or gamma distribution whereas Petal Length and Petal width are mostly uniform distrubutions.
+
+### Answer 1
+As the data seems to be a mixture of distributions we will be using EM model where we use the E step to sum the expectations of statistics and M step to maximise the linear function. As all the data doesn't belong to linear function it is good to use EM model here.
+
+```{r}
+fit<-Mclust(iris_data)
+fit
+summary(fit)
+plot(fit,what="BIC")
+plot(fit, what = "classification")
+plot(fit, what = "uncertainty")
+plot(fit, what = "density")
+BIC = mclustBIC(iris_data)
+summary(BIC)
+```
+
+From the above graphs of EM clusters we can see that data is segregated into two clusters easily but identifying the third cluster is still a problem.
+
+### Answer 2
+EM clustering approach performs very similar to k-means, pam of heirarchical clustering as just like in those models identifying the third cluster seems challenging in this case. Although density plot does seem to indicate that two clusters are clubbed together.

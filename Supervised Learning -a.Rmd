@@ -1,0 +1,107 @@
+---
+title: "Assignment6a"
+author: "Yatish"
+date: "October 14, 2015"
+output: html_document
+---
+### Taking input of leaf data.
+
+```{r}
+#install.packages("class")
+library("class")
+lf<- read.csv("leaf.csv")
+colnames(lf)<- c("Class", "SpecimenNumber","Eccentricity","AspectRatio","Elongation","Solidity","StochasticConvexity","IsoperimetricFactor","MaximalIndentationDepth","Lobedness","AverageIntensity","AverageContrast","Smoothness","ThirdMoment","Uniformity","Entropy")
+
+table(lf$Class)
+lf$Class
+```
+
+Shuffling the rows to rearrange the data
+```{r}
+shuff<-runif(nrow(lf))
+leaf<-lf[order(shuff),]
+leaf$Class
+```
+
+Scaling the data.
+```{r}
+leaf.scaled<-as.data.frame(lapply(leaf[,c(2:16)], scale))
+head(leaf.scaled)
+summary(leaf.scaled)
+
+```
+
+Normalizing the data
+```{r}
+normalize<- function(x) {
+  return((x-min(x))/(max(x)-min(x)))
+}
+leaf.normalized<-as.data.frame(lapply(leaf[,c(2:16)],normalize))
+head(leaf.normalized)
+```
+
+Classifying the data using k-NN.
+```{r}
+leaf.normalized.train<-leaf.normalized[1:300,]
+leaf.normalized.test<-leaf.normalized[301:339,]
+leaf.normalized.train.target<-leaf[1:300,c(1)]
+leaf.normalized.test.target<-leaf[301:339,c(1)]
+
+k<-5
+knn.m1<- knn(train=leaf.normalized.train, test=leaf.normalized.test,leaf.normalized.train.target,k)
+length(knn.m1)
+
+cm<-table(leaf.normalized.test.target,knn.m1)
+cm
+```
+
+Changing k values.
+```{r}
+  k<-8
+knn.m1<- knn(train=leaf.normalized.train, test=leaf.normalized.test,leaf.normalized.train.target,k)
+length(knn.m1)
+
+cm<-table(leaf.normalized.test.target,knn.m1)
+cm
+k<-2
+knn.m1<- knn(train=leaf.normalized.train, test=leaf.normalized.test,leaf.normalized.train.target,k)
+length(knn.m1)
+
+cm<-table(leaf.normalized.test.target,knn.m1)
+cm
+```
+
+By looking at the above data we can clearly state that changing the K values change the data drastically. With K=5 there were two observations in leaf 1(Quercus suber) whereas changing the K values to 8 changed the cluster position and k value to 2 came back with a tie breaker thus less efficient.
+
+
+Using k-NN with scaled and unscaled data
+```{r}
+#scaled data
+leaf.scaled.train<-leaf.scaled[1:300,]
+leaf.scaled.test<-leaf.scaled[301:339,]
+leaf.scaled.train.target<-leaf[1:300,c(1)]
+leaf.scaled.test.target<-leaf[301:339,c(1)]
+
+k<-5
+knn.m1<- knn(train=leaf.scaled.train, test=leaf.scaled.test,leaf.scaled.train.target,k)
+length(knn.m1)
+
+cm<-table(leaf.scaled.test.target,knn.m1)
+cm
+
+#raw data
+leaf.data.train<-leaf[1:300,]
+leaf.data.test<-leaf[301:339,]
+leaf.data.train.target<-leaf[1:300,c(1)]
+leaf.data.test.target<-leaf[301:339,c(1)]
+
+k<-5
+knn.m1<- knn(train=leaf.data.train, test=leaf.data.test,leaf.data.train.target,k)
+length(knn.m1)
+
+cm<-table(leaf.data.test.target,knn.m1)
+cm
+```
+Transforming the data by scaling or normalizing gives better clustering as we can observe the same with the above examples. With the raw data we can see leaf 1 is clustered in two separate clusters i.e. there seems to be a tie but we can see with the scaled and normalized examples the same is clustered in only 1 cluster.
+
+That is we can say by normalizing or scaling the data we are gaining confidence to cluster data better.

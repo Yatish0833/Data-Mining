@@ -1,0 +1,132 @@
+---
+title: "Assignment 4d"
+author: "Yatish"
+date: "October 6, 2015"
+output: html_document
+---
+
+I am choosing a dataset of cars evaluations which can be accessed from the (link)[https://archive.ics.uci.edu/ml/machine-learning-databases/car/]
+
+Loading the dataset and giving appropriate columns names!
+```{r}
+require(arules)
+require(arulesViz)
+require(Matrix)
+car_data<- read.table("car.data",sep=",")
+colnames(car_data)<-c("buying","maint","doors","persons","lug_boot","safety","class")
+
+```
+
+Generating 50 or so non-redundant rules:
+
+```{r}
+carData.d<-apriori(car_data)
+carData.d
+```
+default setting only generated 15 rules:
+
+setting better support and confidence and min length to learn more rules:
+```{r}
+betterData<- apriori(car_data, parameter = list(support = 0.01, confidence = 0.90, minlen = 3))
+betterData
+inspect(betterData[1:20])
+```
+
+Now we have learned a set of 347 rules, lets make a subset of rules class=unacc! and remove the redundant rules from this subset.
+
+```{r}
+data.sorted<- subset(betterData, items %in% "class=unacc")
+Rulesdataframe<- as(data.sorted, "data.frame")
+subset.matrix <- is.subset(data.sorted, data.sorted)
+subset.matrix[lower.tri(subset.matrix, diag=T)] <- NA
+redundant <- colSums(subset.matrix, na.rm=T) >= 1
+which(redundant)
+rules.pruned <- data.sorted[!redundant]
+inspect(rules.pruned)
+rules.pruned
+```
+After removing the redundant rules we are left with set of 43 rules for our subset of class=unacc.
+
+### Answer 1
+Rules that makes sense to me are - 
+
+#### Best 5:
+
+* 2 {buying=vhigh,maint=vhigh} => {class=unacc}
+* 3 {buying=vhigh,safety=low} => {class=unacc}
+* 25 {maint=vhigh,safety=low} => {class=unacc}
+* 9 {buying=high,safety=low} => {class=unacc}
+* 15 {maint=high,safety=low} => {class=unacc}
+
+Rules that doesn't make sense to me are - 
+
+#### Worst 5
+
+
+* 40 {persons=2,lug_boot=small} => {class=unacc}
+* 36 {persons=2,safety=high} => {class=unacc}
+* 29 {buying=low,persons=2} => {class=unacc}
+* 26 {maint=vhigh,lug_boot=small} => {class=unacc}
+* 24 {doors=2,persons=2} => {class=unacc}
+
+
+### Answer 2
+
+I chose a support value low and confidence value very high so that I can get even those rules which might not make sense but the confidence of those are still high. This way I can get access to those rules which might not be obvious to naked eyes but might have some statistical significance.
+
+### Answer 3
+
+Lift values for Best 5s:
+
+* 2 {buying=vhigh,maint=vhigh} => {class=unacc} - 1.428099
+* 3 {buying=vhigh,safety=low} => {class=unacc} - 1.428099
+* 25 {maint=vhigh,safety=low} => {class=unacc} - 1.428099
+* 9 {buying=high,safety=low} => {class=unacc} - 1.428099
+* 15 {maint=high,safety=low} => {class=unacc} - 1.428099
+
+Lift values for worst 5s:
+
+* 40 {persons=2,lug_boot=small} => {class=unacc} - 1.428099
+* 36 {persons=2,safety=high} => {class=unacc} - 1.428099
+* 29 {buying=low,persons=2} => {class=unacc} - 1.428099
+* 26 {maint=vhigh,lug_boot=small} => {class=unacc} - 1.289256
+* 24 {doors=2,persons=2} => {class=unacc} - 1.428099
+
+```{r}
+interestMeasure(rules.pruned,"conviction",transactions=car_data)
+```
+
+conviction values for Best 5s:
+
+* 2 {buying=vhigh,maint=vhigh} => {class=unacc} - NA
+* 3 {buying=vhigh,safety=low} => {class=unacc} - NA
+* 25 {maint=vhigh,safety=low} => {class=unacc} - NA
+* 9 {buying=high,safety=low} => {class=unacc} - NA
+* 15 {maint=high,safety=low} => {class=unacc} - NA
+
+Conviction values for worst 5s:
+
+* 40 {persons=2,lug_boot=small} => {class=unacc} - NA
+* 36 {persons=2,safety=high} => {class=unacc} - NA
+* 29 {buying=low,persons=2} => {class=unacc} - NA
+* 26 {maint=vhigh,lug_boot=small} => {class=unacc} - 3.083333 
+* 24 {doors=2,persons=2} => {class=unacc} - NA
+
+I don't understand why all the conviction values are NA
+
+### Answer 4
+```{r}
+plot(rules.pruned, method="graph", control=list(type="items"))
+plot(rules.pruned, method="paracoord", control=list(reorder=TRUE))
+```
+
+
+
+Best rules seems to be in centre or close to centre whereas worst rules are in periphery or away from class=unacc
+
+### Answer 5
+Yes the model does make sense especially when we see the best rules. When the safety is low class is unacceptable, when the buying and maintenance is very high class is unacceptable.
+Few rules doesn't make sense but we can ignore such rules by increasing the support value while learning rules. example of Rules which doesn't make sense are: How can the car be unacceptable if it has 2 doors and allows 2 person, How can the car be unacceptable if it accommodate 2 people and the safety is high.
+
+By increasing support value we can get rid of such rules and then model will make sense perfectly!.
+

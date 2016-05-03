@@ -1,0 +1,79 @@
+---
+title: "Assignment 3"
+author: "Yatish"
+date: "September 29, 2015"
+output: html_document
+---
+```{r}
+require(ggplot2)
+require(reshape2)
+require(psych)
+library(ggbiplot)
+```
+
+Load the BLS data in R.
+```{r}
+BLS<-read.csv("2014.annual.singlefile.csv")
+str(BLS)
+```
+
+Running the principal component analysis on the BLS data by first removing the non integer values from the data.
+
+```{r}
+BLS<- BLS[-c(1:8,16,24)]
+BLS.fit.a<-prcomp(BLS, retx=TRUE, center=TRUE, scale.=TRUE)
+
+summary(BLS.fit.a)
+```
+
+### Answer 1
+As we can see from the summary statement using the proportion of variation row.
+PC1 corresponds to 34% of the total variation in the data
+PC2 13%
+PC3 10%
+PC4 8%
+PC5 6%
+PC6 5%
+PC7 5%
+PC8 4%
+PC9 3%
+PC10 3%
+PC11 2%
+PC12 1.5%
+PC13 .8%
+PC14 .5%
+PC15 .5%
+PC16 .4%
+PC17 .3%
+PC18 .1%
+PC19 .06%
+PC20 .05%
+PC21 .04%
+PC22 .02%
+PC23 .008%
+PC24 .002%
+PC25 0%
+PC26 0%
+PC27 0%
+PC28 0%
+
+### Answer 2
+Plotting a screeplot
+```{r}
+screeplot(BLS.fit.a)
+```
+From the screeplot we can see the first Principal component explains the maximum percentage of total variance when compared to other principal components.
+
+### Answer 3
+
+Based on the variation explained for each of these components I would use the first principal component as it explains the maximum variation. Second principal component is uncorrelate to first principal component that explains the second largest amount of variation. So using the first principal component makes sense as it contains group of correlated loadings that explain the largest amount of variance.
+
+
+### Answer 4 and 5
+I was not able tio generate the biplot and prof. asked me to move on with these questions!
+```{r}
+biplot(BLS.fit.a)
+```
+
+### Answer 6
+First 6 PCs are required to explain 75% of the variance in data as the sum of variances of first 6 PCs comes as 77%.

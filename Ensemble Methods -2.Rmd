@@ -1,0 +1,42 @@
+---
+title: "Assignment9c"
+author: "Yatish"
+date: "November 4, 2015"
+output: html_document
+---
+
+```{r}
+iris<- read.table("iris.data",sep=",")
+colnames(iris)<-c("SepalLength","SepalWidth","PetalLength","petalWidth","Species")
+
+```
+
+```{r}
+library(randomForest)
+library(caret)
+library(rpart)
+library(adabag) 
+iris.len <- sample(1:nrow(iris), 3*nrow(iris)/4)
+head(iris.len)
+
+train <- iris[iris.len,]
+test <- iris[-iris.len,]
+head(train)
+head(test)
+
+
+iris_bagging <- randomForest(Species~.,data=iris, subset=iris.len, mtry=4, importance=TRUE)
+plot(iris_bagging)
+
+iris_predict <- predict(iris_bagging, test)
+iris_predict_confusion <- confusionMatrix(iris_predict, test$Species)
+iris_predict_confusion$table
+
+accuracy <- iris_predict_confusion$overall[1]
+accuracy
+```
+Data is classified with 97%accuracy which is a considerable increase in accuracy.
+
+
+
+

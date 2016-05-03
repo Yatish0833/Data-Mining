@@ -1,0 +1,134 @@
+---
+title: "Assignment 12"
+author: "Yatish"
+date: "December 1, 2015"
+output: html_document
+---
+
+Neo4j community edition can be downloaded from the official site directly. [neo4j](http://neo4j.com/download/other-releases/)
+
+#### Installation
+
+Neo4J installation is very simple with only one prerequisite i.e. [OpenJDK7](http://openjdk.java.net/)
+
+Once you have this Java version you can directly go inside the neo4j unzipped folder and within it bin folder and type the following command to run the server:
+
+`
+cd Downloads/neo4j-community-2.2.4/bin
+
+neo4j start
+`
+The first time you open this browser you are allowed to set a new password for this server by clicking on the password link on the left pane. The default username is neo4j and the default password is neo4j.
+
+##### Installing neo4j in R
+`install.packages("devtools")
+install.packages("httr")
+devtools::install_github("nicolewhite/RNeo4j")`
+
+```{r}
+library(RNeo4j)
+```
+
+```{r}
+graph = startGraph("http://localhost:7474/db/data/",username="neo4j",password="yatish")
+#clear(graph)
+```
+
+
+```{r}
+#creating nodes
+#createNode(graph object, label, key1=value1, key2=value2)
+ben <- createNode(graph, "Person", name="Ben", age=45, designation="Sr. Manager")
+mel <- createNode(graph, "Person", name="Mel", age=38, designation="Team Leader")
+kelly <- createNode(graph, "Person", name="Kelly", age=30, designation="Programmer")
+mike <- createNode(graph, "Person", name="Mike",age=27, designation="Software Tester")
+john <- createNode(graph, "Person", name="John", age=28, designation="Android developer")
+ella <- createNode(graph, "Person", name="Ella", age=28, designation="Marketing")
+dave <- createNode(graph, "Person", name="Dave", age=48, designation="Zonal Head")
+maggi <- createNode(graph, "Person",name="Maggi", age=28, designation="Assistant")
+laugh<- createNode(graph, "Club",name="XYZ laughter club", motto="learn to laugh",members=50)
+sports <- createNode(graph,"Sports",name="Cricket",host="ICC")
+
+
+# Creating relationships
+r1 <- createRel(mel,"WORKS_FOR",ben)
+r2 <- createRel(kelly,"WORKS_FOR",ben)
+r3 <- createRel(mike,"WORKS_FOR",ben)
+r4 <- createRel(john,"WORKS_FOR",ben)
+r5 <- createRel(ella,"WORKS_FOR",ben)
+r6 <- createRel(ben,"WORKS_FOR",dave)
+r7 <- createRel(maggi, "WORKS_FOR",dave)
+r8 <- createRel(maggi, "FRIENDS_WITH",ella)
+r9 <- createRel(ella, "FRIENDS_WITH",maggi)
+r10 <- createRel(john, "FRIENDS_WITH",mike)
+r11 <- createRel(mike, "FRIENDS_WITH",john)
+r12 <- createRel(dave, "PART_OF",laugh)
+r13 <- createRel(john,"PART_OF",laugh)
+r14 <- createRel(mike,"PART_OF",laugh)
+r15 <- createRel(dave,"LIKES",sports)
+r16 <- createRel(ben,"LIKES",sports)
+r17 <- createRel(mike,"LIKES",sports)
+r18 <- createRel(dave,"KNOWS",ella)
+```
+
+##Visualisation
+
+```{r}
+library(igraph)
+
+query="
+MATCH (n) -->(m)
+RETURN n.name,m.name
+"
+cypher(graph, query)
+edgelist = cypher(graph, query)
+ig = graph.data.frame(edgelist, directed=F)
+
+betweenness(ig)
+closeness(ig)
+plot(ig)
+```
+
+
+### Queries
+
+```{r}
+# Query to display all the employees who works for somebody
+query = "
+MATCH (m:Person)-[:WORKS_FOR]->(works_for:Person)
+WHERE m.age={age}
+RETURN m.name,m.age,m.designation,works_for.name
+"
+
+cypher(graph, query,age=28)
+
+query = "
+MATCH (m:Person)-[:WORKS_FOR]->(w:Person),
+(w:Person)-[:PART_OF]->(laugh)
+RETURN m.name,m.age,m.designation,laugh.name,w.name
+"
+
+cypher(graph, query)
+
+
+query = "
+MATCH (m:Person)-[:WORKS_FOR]->(w:Person)
+Where w.name= {name}
+RETURN w, Collect(m.name) AS employees
+"
+cypherToList(graph, query,name="Dave")
+```
+
+
+Query to find the shortest path between two nodes
+```{r}
+query = "
+MATCH p = shortestPath((kelly:Person)-[:WORKS_FOR*]->(dave:Person))
+WHERE kelly.name = 'Kelly' AND dave.name = 'Dave'
+RETURN p
+"
+
+p = cypherToList(graph, query)[[1]]
+p$p$length
+```
+

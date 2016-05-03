@@ -1,0 +1,141 @@
+---
+title: "Assignment6d"
+author: "Yatish"
+date: "October 20, 2015"
+output: html_document
+---
+
+```{r}
+require(ggplot2)
+require(MASS)
+require(car)
+```
+
+Loading Iris data
+
+```{r}
+iris<- read.table("iris.data",sep=",")
+colnames(iris)<-c("SepalLength","SepalWidth","PetalLength","petalWidth","Species")
+```
+
+Plotting scatterplot and pairs
+```{r}
+scatterplotMatrix(iris[1:4])
+pairs(iris[,1:4])
+```
+
+Checking the classification using qplot
+```{r}
+qplot(iris$SepalLength,iris$SepalWidth,data=iris)+geom_point(aes(colour = factor(iris$Species),shape = factor(iris$Species)))
+```
+
+```{r}
+qplot(iris$PetalLength,iris$petalWidth,data=iris)+geom_point(aes(colour = factor(iris$Species),shape = factor(iris$Species)))
+```
+
+Performing LDA with 3 species
+```{r}
+lsa.m1<-lda(Species ~ PetalLength + petalWidth, data=iris)
+lsa.m1
+lsa.m2<-lda(Species ~ SepalLength + SepalWidth, data=iris)
+lsa.m2
+```
+
+Removing 1 species from the original data
+```{r}
+iris2<-iris[which(iris$Species!="Iris-virginica"),]
+qplot(iris2$SepalLength,iris2$SepalWidth,data=iris2)+geom_point(aes(colour = factor(iris2$Species),shape = factor(iris2$Species)))
+qplot(iris2$PetalLength,iris2$petalWidth,data=iris2)+geom_point(aes(colour = factor(iris2$Species),shape = factor(iris2$Species)))
+```
+Performing LDA again with 1 less species
+```{r}
+lsa.m3<-lda(Species ~ PetalLength + petalWidth, data=iris2)
+lsa.m3
+lsa.m4<-lda(Species ~ SepalLength + SepalWidth, data=iris2)
+lsa.m4
+```
+
+
+predictions!
+```{r}
+lsa.m1.p<-predict(lsa.m1, newdata = iris[,c(3,4)])
+lsa.m1.p
+lsa.m2.p<-predict(lsa.m2, newdata = iris[,c(1,2)])
+lsa.m2.p
+lsa.m3.p<-predict(lsa.m3, newdata = iris2[,c(3,4)])
+lsa.m3.p
+lsa.m4.p<-predict(lsa.m4, newdata = iris2[,c(1,2)])
+lsa.m4.p
+```
+
+Confusion matrix to compare the results:
+```{r}
+cm.m1<-table(lsa.m1.p$class,iris[,c(5)])
+cm.m1
+
+cm.m2<-table(lsa.m2.p$class,iris[,c(5)])
+cm.m2
+
+cm.m3<-table(lsa.m3.p$class,iris2[,c(5)])
+cm.m3
+
+cm.m4<-table(lsa.m4.p$class,iris2[,c(5)])
+cm.m4
+```
+
+###Answers!
+1. Yes, the number of predictor variable for LDA makes a difference. We can see the drastic improvement in classification of confusion matrix in the second scenario where there are only two predictor variables as compared to scenario 1 with 3 predictor variables.
+
+2. Number of Linear Discriminants in LDA can be determined based on the data and how many groups the data needs to be classified.
+
+3.
+Scaling and normalizing.
+```{r}
+iris.scaled<-as.data.frame(lapply(iris[,c(1:4)], scale))
+iris.scaled<-cbind(iris.scaled,iris$Species)
+head(iris.scaled)
+summary(iris.scaled)
+
+normalize<- function(x) {
+  return((x-min(x))/(max(x)-min(x)))
+}
+iris.normalized<-as.data.frame(lapply(iris[,c(1:4)],normalize))
+iris.normalized<-cbind(iris.normalized,iris$Species)
+head(iris.normalized)
+```
+
+```{r}
+lsa.m1<-lda(iris$Species ~ PetalLength + petalWidth, data=iris.scaled)
+lsa.m1
+lsa.m2<-lda(iris$Species ~ SepalLength + SepalWidth, data=iris.scaled)
+lsa.m2
+lsa.m1.p<-predict(lsa.m1, newdata = iris.scaled[,c(3,4)])
+lsa.m1.p
+lsa.m2.p<-predict(lsa.m2, newdata = iris.scaled[,c(1,2)])
+lsa.m2.p
+lsa.m3<-lda(iris$Species ~ PetalLength + petalWidth, data=iris.normalized)
+lsa.m3
+lsa.m4<-lda(iris$Species ~ SepalLength + SepalWidth, data=iris.normalized)
+lsa.m4
+lsa.m3.p<-predict(lsa.m3, newdata = iris.normalized[,c(3,4)])
+lsa.m3.p
+lsa.m4.p<-predict(lsa.m4, newdata = iris.normalized[,c(1,2)])
+lsa.m4.p
+```
+
+```{r}
+cm.m1<-table(lsa.m1.p$class,iris.scaled[,c(5)])
+cm.m1
+
+cm.m2<-table(lsa.m2.p$class,iris.scaled[,c(5)])
+cm.m2
+
+cm.m3<-table(lsa.m3.p$class,iris.normalized[,c(5)])
+cm.m3
+
+cm.m4<-table(lsa.m4.p$class,iris.normalized[,c(5)])
+cm.m4
+```
+
+Answer 3
+I think scaling and normalization should affect LDA but as we can see in our dataset of Iris scaling and normalizing is not affecting in any way. The reason could be the dataset is very small.
